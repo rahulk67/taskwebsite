@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Github Api fetch task </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+
+<!-- css style and javascrpit code also coded in the "taskwebsite.html" file  -->
+
+<body>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+
+    <style>
+        .body {
+            text-align: center;
+        }
+
+        #git_container {
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 20px;
+            padding: 0;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: .5fr .5fr;
+            align-items: center;
+            column-gap: 25px;
+        }
+
+        .card {
+            margin: 20px;
+            margin-top: 20px;
+        }
+
+        .pagination {
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .pagination button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .pagination button:hover:not(.active) {
+            background-color: #45a049;
+        }
+
+        .card ion-icon {
+            margin-left: 20px;
+        }
+    </style>
+
+    <div class="card">
+        <div class="row">
+            <div class="col-md-6">
+                <div>
+                    <img id="avatar" alt="image" style="height: 120px; width: 120px; margin: 6px 6px ;">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="align-items: center;">
+                    <h2 id='name'></h2>
+                    <p>Bio Goes here</p>
+                    <p>Location-America</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <ion-icon name="link-outline"></ion-icon>
+                <a id='url'></a>
+            </div>
+            <div class="col-md-6">
+                <ion-icon name="link-outline"></ion-icon>
+                <a style="text-decoration: underline;" id='twitter'></a>
+            </div>
+        </div>
+    </div>
+
+    <h1 id="twitter"></h1>
+
+    <h1 id='url'></h1>
+    <h1 id='name'></h1>
+
+    <div id="git_container">
+    </div>
+
+
+    <div>
+        <center>
+            <div class="pagination" id="pagination">
+            </div>
+        </center>
+    </div>
+
+
+
+    <script>
+
+
+        var apiurl = "https://api.github.com/users/onaly/repos";
+        var gitData = []; //store git repo
+        let itemsPerPage = 10;
+        let currentPage = 1;
+        // let showPage = totalPages; //
+
+        //adjust the number of items per page
+
+        // const content = document.getElementById('content');
+        const pagination = document.getElementById('pagination');
+        const imageElement = document.getElementById('avatar');
+
+
+        async function dataTable() {
+            await gitTable();
+            //  console.log(gitData);
+            const pages = [];
+            for (let i = 0; i <= Math.ceil(gitData.length / itemsPerPage); i++) {
+                pages.push(i)
+            }
+
+            const indexOfLastPage = currentPage * itemsPerPage;
+            const indexOfFirstPage = indexOfLastPage - itemsPerPage;
+            const currentItems = gitData.slice(indexOfFirstPage, indexOfLastPage);
+
+            let data1 = "";
+            currentItems.map((values) => {
+                data1 += `
+                
+                <div class="container">
+                <div class="row">
+                <div class="col-mx-6">
+                <div class="card " style="width: 35rem; height:10rem">
+                <div class="card-body">
+                <h1 class="card-title" style="color:blue;">${values.name}</h1>
+                <h5 class="card-subtitle mb-2 text-body-secondary" style="color:black";>${values.description}</h5>
+                <span class="badge text-bg-primary">${values.topics[0]}</span>
+                <span class="badge text-bg-primary">${values.topics[1]}</span>
+                <span class="badge text-bg-primary">${values.topics[2]}</span>
+                <span class="badge text-bg-primary">${values.topics[3]}</span>
+                 </div>
+                  </div>
+                  </div>
+                </div>
+               </div>`
+            }).join("");
+
+            document.getElementById("git_container").innerHTML = data1;
+
+        }
+        dataTable();
+
+
+        async function showPage() {
+            await gitTable();
+            let currentPage = 1;
+
+            const indexOfFirstPage = (currentPage - 1) * itemsPerPage;
+            const indexOfLastPage = indexOfFirstPage + itemsPerPage;
+            const currentItems = gitData.slice(indexOfFirstPage, indexOfLastPage);
+
+            for (let i = 0; i < currentItems.length; i++) {
+                currentItems[i].style.display = (i >= indexOfFirstPage && i < indexOfLastPage) ? 'block' : 'none';
+            }
+        }
+        showPage();
+
+
+        async function updatePaginationButtons() {
+            await gitTable();
+            pagination.innerHTML = '';
+
+            const totalPages = Math.ceil(gitData.length / itemsPerPage);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.addEventListener('click', function () {
+                    currentPage = i;
+                    showPage(currentPage);
+                    updatePaginationButtons();
+                });
+
+                if (i === currentPage) {
+                    button.classList.add('active');
+                }
+
+                pagination.appendChild(button);
+            }
+            dataTable();
+
+            // prev button
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous(Latest)';
+            prevBtn.addEventListener('click', function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                    updatePaginationButtons();
+                }
+            });
+            pagination.appendChild(prevBtn);
+
+            // nxt button
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next(Older)';
+            nextBtn.addEventListener('click', function () {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                    updatePaginationButtons();
+                }
+            });
+            pagination.appendChild(nextBtn);
+        }
+        updatePaginationButtons();
+
+        async function gitTable() {
+            const data = await fetch(apiurl);
+            const res = await data.json();
+            gitData = res;
+            console.log(gitData);
+            const url = gitData[0].owner.html_url;
+            const name = gitData[0].owner.login;
+
+            const twitter = gitData[0].owner.login;
+            twitterurl = 'https://twitter.com/' + twitter;
+
+
+            const imageUrl = gitData[5].owner.avatar_url;
+
+            imageElement.src = imageUrl;
+            console.log(imageUrl);
+            // console.log(url);
+
+            document.getElementById('name').innerHTML = name;
+            document.getElementById('url').innerHTML = url;
+            document.getElementById('avatar').innerHTML = imageUrl;
+            document.getElementById('twitter').innerHTML = twitterurl;
+            // const imageElement =document.getElementById('avatar');
+            // document.getElementById('avatar').innerHTML = avatar;
+
+        }
+    </script>
+
+</body>
+
+</html>
